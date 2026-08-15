@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FRIENZ</title>
+  <style>
+    :root {
+      --bg: #06151b;
+      --bg-2: #0a1f2a;
+      --panel: rgba(14, 32, 39, 0.92);
+      --panel-strong: #102a35;
+      --line: rgba(144, 204, 188, 0.22);
+      --text: #ecfffb;
+      --muted: #a9c5be;
+      --primary: #5fe8c5;
+      --primary-strong: #3dd4ae;
+      --accent: #8ae8ff;
+      --warning: #ffd36e;
+      --danger: #ff8c9d;
+      --shadow: rgba(0, 0, 0, 0.25);
+    }
+
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Arial, Helvetica, sans-serif;
+      background:
+        radial-gradient(circle at top, rgba(95, 232, 197, 0.14), transparent 28%),
+        linear-gradient(180deg, var(--bg) 0%, #081c22 100%);
+      color: var(--text);
+    }
+
+    button, input, textarea {
+      font: inherit;
+    }
+
+    .app-shell {
+      max-width: 460px;
+      min-height: 100vh;
+      margin: 0 auto;
+      background: rgba(6, 21, 27, 0.78);
+      border-left: 1px solid rgba(255,255,255,0.04);
+      border-right: 1px solid rgba(255,255,255,0.04);
+      position: relative;
+      box-shadow: 0 30px 70px var(--shadow);
+    }
+
+    .screen {
+      display: none;
+      min-height: 100vh;
+    }
+
+    .screen.active {
+      display: block;
+    }
+
+    .auth {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 20px;
+      background: linear-gradient(180deg, rgba(5,18,23,0.98), rgba(8,24,31,0.96));
+    }
+
+    .auth-card {
+      width: 100%;
+      max-width: 420px;
+      background: rgba(20, 39, 46, 0.96);
+      border: 1px solid var(--line);
+      border-radius: 28px;
+      padding: 28px 22px 24px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.28);
+    }
+
+    .brand {
+      text-align: center;
+      letter-spacing: 0.28rem;
+      font-weight: 900;
+      font-size: clamp(2.2rem, 7vw, 3.4rem);
+      color: var(--primary);
+      margin: 0 0 8px;
+    }
+
+    .tagline {
+      text-align: center;
+      margin: 0 0 24px;
+      color: var(--muted);
+      line-height: 1.5;
+      font-size: 0.96rem;
+    }
+
+    h1, h2, h3, p { margin-top: 0; }
+
+    .auth-card h2 {
+      margin-bottom: 14px;
+      font-size: clamp(1.5rem, 5vw, 2rem);
+    }
+
+    .field {
+      width: 100%;
+      border: 1px solid rgba(155, 200, 193, 0.25);
+      background: rgba(7, 20, 27, 0.85);
+      color: var(--text);
+      border-radius: 14px;
+      padding: 14px 16px;
+      margin-bottom: 12px;
+      outline: none;
+      transition: border-color 0.2s ease, transform 0.2s ease;
+    }
+
+    .field:focus {
+      border-color: rgba(95, 232, 197, 0.9);
+      transform: translateY(-1px);
+    }
+
+    .primary-btn, .ghost-btn, .chip-btn, .nav-btn {
+      border: none;
+      border-radius: 14px;
+      cursor: pointer;
+      transition: transform 0.18s ease, opacity 0.18s ease;
+    }
+
+    .primary-btn:hover, .ghost-btn:hover, .chip-btn:hover, .nav-btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .primary-btn {
+      width: 100%;
+      padding: 14px 16px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-strong));
+      color: #072b23;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      margin-top: 8px;
+    }
+
+    .app {
+      display: none;
+      padding-bottom: 90px;
+    }
+
+    .app.active {
+      display: block;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 18px 14px;
+      background: rgba(6,21,27,0.86);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .brand-mini {
+      letter-spacing: 0.18rem;
+      font-weight: 800;
+      color: var(--primary);
+      margin: 0;
+      font-size: 1.7rem;
+    }
+
+    .topbar-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, rgba(95,232,197,0.18), rgba(138,232,255,0.18));
+      border: 1px solid var(--line);
+      color: var(--primary);
+      font-weight: 700;
+    }
+
+    .content {
+      padding: 18px 18px 0;
+    }
+
+    .hero {
+      margin-bottom: 14px;
+    }
+
+    .hero h1 {
+      margin: 0 0 6px;
+      font-size: clamp(2rem, 8vw, 2.6rem);
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      padding: 16px;
+      margin-bottom: 16px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.14);
+    }
+
+    .card-header, .friend-row, .chat-row, .post-meta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .avatar {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      font-weight: 800;
+      color: #0b1d22;
+      background: linear-gradient(135deg, var(--accent), var(--primary));
+      flex-shrink: 0;
+    }
+
+    .avatar.lg {
+      width: 72px;
+      height: 72px;
+      font-size: 1.6rem;
+    }
+
+    .post-copy {
+      line-height: 1.55;
+      color: #edfdf7;
+      margin: 14px 0 16px;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .chip-btn, .ghost-btn {
+      padding: 10px 12px;
+      background: rgba(255,255,255,0.03);
+      color: var(--text);
+      border: 1px solid rgba(155, 200, 193, 0.18);
+      font-weight: 700;
+    }
+
+    .chip-btn.primary {
+      background: rgba(95,232,197,0.12);
+      color: var(--primary);
+      border-color: rgba(95,232,197,0.3);
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 6px 0 14px;
+    }
+
+    .section-title h2 {
+      margin: 0;
+      font-size: 1.8rem;
+    }
+
+    .input {
+      width: 100%;
+      border: 1px solid var(--line);
+      background: rgba(8, 22, 28, 0.8);
+      color: var(--text);
+      border-radius: 14px;
+      padding: 14px 16px;
+      margin-bottom: 14px;
+      outline: none;
+    }
+
+    textarea.input {
+      min-height: 120px;
+      resize: vertical;
+    }
+
+    .friend-row, .chat-row {
+      justify-content: flex-start;
+      padding: 6px 0;
+    }
+
+    .friend-row .meta, .chat-row .meta {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .meta strong {
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .meta span {
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .friend-add {
+      background: rgba(95,232,197,0.12);
+      color: var(--primary);
+      border: 1px solid rgba(95,232,197,0.3);
+      padding: 10px 12px;
+      border-radius: 10px;
+      font-weight: 700;
+    }
+
+    .profile-top {
+      text-align: center;
+      padding: 18px 0 10px;
+    }
+
+    .stats {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+      color: var(--muted);
+    }
+
+    .stats strong {
+      color: var(--text);
+      display: block;
+      font-size: 1.1rem;
+      margin-bottom: 2px;
+    }
+
+    .nav {
+      position: fixed;
+      left: 50%;
+      bottom: 12px;
+      transform: translateX(-50%);
+      width: min(96vw, 430px);
+      display: flex;
+      justify-content: space-between;
+      background: rgba(9, 26, 33, 0.92);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      padding: 8px 8px 10px;
+      box-shadow: 0 15px 40px rgba(0,0,0,0.22);
+    }
+
+    .nav-btn {
+      flex: 1;
+      background: transparent;
+      color: var(--muted);
+      font-size: 0.8rem;
+      padding: 10px 6px 6px;
+      min-height: 56px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .nav-btn.active {
+      color: var(--primary);
+      background: rgba(95,232,197,0.08);
+      border-radius: 12px;
+    }
+
+    .hidden { display: none !important; }
+
+    @media (min-width: 620px) {
+      body {
+        padding: 18px 0;
+      }
+
+      .app-shell {
+        border-radius: 24px;
+        min-height: 92vh;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <div id="authScreen" class="screen auth active">
+      <div class="auth-card">
+        <div class="brand">FRIENZ</div>
+        <p class="tagline">Real People. Real Connections. Real Fun.</p>
+
+        <h2>Welcome in</h2>
+        <input id="nameInput" class="field" type="text" placeholder="Full name" />
+        <input id="usernameInput" class="field" type="text" placeholder="Username" />
+        <input id="emailInput" class="field" type="email" placeholder="Email address" />
+        <input id="passwordInput" class="field" type="password" placeholder="Password" />
+
+        <button class="primary-btn" onclick="login()">Create Account</button>
+      </div>
+    </div>
+
+    <div id="appScreen" class="screen app">
+      <header class="topbar">
+        <div class="brand-mini">FRIENZ</div>
+        <div class="topbar-badge">+</div>
+      </header>
+
+      <main class="content">
+        <section id="homePage" class="page active">
+          <div class="hero">
+            <h1>Hi 👋</h1>
+            <p class="muted">What is happening in your world?</p>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <div class="avatar">A</div>
+              <div>
+                <strong>Aarav</strong>
+                <div class="muted">2h ago</div>
+              </div>
+            </div>
+            <p class="post-copy">Weekend vibes! Who is up for a new adventure around town this week?</p>
+            <div class="actions">
+              <button class="chip-btn primary" onclick="like(this)">♥ 12</button>
+              <button class="chip-btn">💬 4</button>
+              <button class="chip-btn">↗ Share</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <div class="avatar">M</div>
+              <div>
+                <strong>Maya</strong>
+                <div class="muted">4h ago</div>
+              </div>
+            </div>
+            <p class="post-copy">Just joined FRIENZ and I am already loving the energy here. Excited to meet more people!</p>
+            <div class="actions">
+              <button class="chip-btn primary" onclick="like(this)">♥ 28</button>
+              <button class="chip-btn">💬 9</button>
+              <button class="chip-btn">↗ Share</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <div class="avatar">K</div>
+              <div>
+                <strong>Kabir</strong>
+                <div class="muted">Yesterday</div>
+              </div>
+            </div>
+            <p class="post-copy">Photography, music, and good conversations are my perfect combo 🎧</p>
+            <div class="actions">
+              <button class="chip-btn primary" onclick="like(this)">♥ 9</button>
+              <button class="chip-btn">💬 3</button>
+              <button class="chip-btn">↗ Share</button>
+            </div>
+          </div>
+        </section>
+
+        <section id="discoverPage" class="page">
+          <div class="section-title">
+            <h2>Discover</h2>
+          </div>
+          <input id="searchInput" class="input" type="text" placeholder="Search people or interests" />
+
+          <div class="card">
+            <div class="friend-row">
+              <div class="avatar">R</div>
+              <div class="meta">
+                <strong>Riya</strong>
+                <span>12 mutual friends</span>
+              </div>
+              <button class="friend-add" onclick="addFriend(this)">＋ Add</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="friend-row">
+              <div class="avatar">D</div>
+              <div class="meta">
+                <strong>Dev</strong>
+                <span>Photography</span>
+              </div>
+              <button class="friend-add" onclick="addFriend(this)">＋ Add</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="friend-row">
+              <div class="avatar">A</div>
+              <div class="meta">
+                <strong>Anaya</strong>
+                <span>Travel & food</span>
+              </div>
+              <button class="friend-add" onclick="addFriend(this)">＋ Add</button>
+            </div>
+          </div>
+        </section>
+
+        <section id="createPage" class="page">
+          <div class="section-title">
+            <h2>Create</h2>
+          </div>
+
+          <div class="card">
+            <textarea id="postInput" class="input" placeholder="Share something with your FRIENZ..."></textarea>
+            <button class="primary-btn" onclick="createPost()">Post</button>
+            <p class="muted" style="margin-top: 14px; margin-bottom: 0;">📷 Photo • 🎥 Video • 📊 Poll</p>
+          </div>
+        </section>
+
+        <section id="chatsPage" class="page">
+          <div class="section-title">
+            <h2>Chats</h2>
+          </div>
+
+          <div class="card" onclick="openChat('Samara')">
+            <div class="chat-row">
+              <div class="avatar">S</div>
+              <div class="meta">
+                <strong>Samara</strong>
+                <span>Hey! Welcome to FRIENZ 👋</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="card" onclick="openChat('Zuriel')">
+            <div class="chat-row">
+              <div class="avatar">Z</div>
+              <div class="meta">
+                <strong>Zuriel</strong>
+                <span>Let’s catch up soon!</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="card" onclick="openChat('Riya')">
+            <div class="chat-row">
+              <div class="avatar">R</div>
+              <div class="meta">
+                <strong>Riya</strong>
+                <span>Shared a photo</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="profilePage" class="page">
+          <div class="card profile-top">
+            <div class="avatar lg" style="margin: 0 auto 12px;">F</div>
+            <h2 id="profileName" style="margin-bottom: 4px;">FRIENZ Member</h2>
+            <p class="muted" id="profileHandle" style="margin-bottom: 16px;">@yourusername</p>
+
+            <div class="stats">
+              <div><strong>3</strong>Posts</div>
+              <div><strong>24</strong>Friends</div>
+              <div><strong>31</strong>Following</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3 style="margin-bottom: 10px;">About</h3>
+            <p class="muted" style="margin: 0;">New to FRIENZ, always open to meaningful conversations, spontaneous plans, and sharing creative energy.</p>
+          </div>
+        </section>
+      </main>
+
+      <nav class="nav" aria-label="Main navigation">
+        <button class="nav-btn active" onclick="showPage('homePage', this)">🏠<span>Home</span></button>
+        <button class="nav-btn" onclick="showPage('discoverPage', this)">🔍<span>Discover</span></button>
+        <button class="nav-btn" onclick="showPage('createPage', this)">➕<span>Create</span></button>
+        <button class="nav-btn" onclick="showPage('chatsPage', this)">💬<span>Chats</span></button>
+        <button class="nav-btn" onclick="showPage('profilePage', this)">👤<span>Profile</span></button>
+      </nav>
+    </div>
+  </div>
+
+  <script>
+    function login() {
+      const name = document.getElementById('nameInput').value.trim();
+      const username = document.getElementById('usernameInput').value.trim();
+      const email = document.getElementById('emailInput').value.trim();
+      const password = document.getElementById('passwordInput').value.trim();
+
+      if (!name || !username || !email || !password) {
+        alert('Please complete all fields to create your account.');
+        return;
+      }
+
+      document.getElementById('profileName').textContent = name;
+      document.getElementById('profileHandle').textContent = '@' + username;
+
+      document.getElementById('authScreen').classList.remove('active');
+      document.getElementById('appScreen').classList.add('active');
+    }
+
+    function showPage(pageId, navButton) {
+      document.querySelectorAll('.page').forEach((page) => page.classList.remove('active'));
+      document.getElementById(pageId).classList.add('active');
+
+      document.querySelectorAll('.nav-btn').forEach((button) => button.classList.remove('active'));
+      navButton.classList.add('active');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function like(button) {
+      const match = button.textContent.match(/\d+/);
+      const current = match ? Number(match[0]) : 0;
+      button.textContent = '♥ ' + (current + 1);
+    }
+
+    function addFriend(button) {
+      button.textContent = '✓ Sent';
+      button.disabled = true;
+      button.style.opacity = '0.8';
+    }
+
+    function createPost() {
+      const content = document.getElementById('postInput').value.trim();
+      if (!content) {
+        alert('Write something first!');
+        return;
+      }
+
+      const feed = document.getElementById('homePage');
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.innerHTML = `
+        <div class="card-header">
+          <div class="avatar">F</div>
+          <div>
+            <strong>FRIENZ Member</strong>
+            <div class="muted">Just now</div>
+          </div>
+        </div>
+        <p class="post-copy">${content}</p>
+        <div class="actions">
+          <button class="chip-btn primary" onclick="like(this)">♥ 0</button>
+          <button class="chip-btn">💬 0</button>
+          <button class="chip-btn">↗ Share</button>
+        </div>
+      `;
+
+      feed.insertBefore(card, feed.firstChild.nextSibling);
+      document.getElementById('postInput').value = '';
+      showPage('homePage', document.querySelector('.nav-btn'));
+    }
+
+    function openChat(name) {
+      alert('Opening a chat with ' + name + '.');
+    }
+
+    document.getElementById('searchInput')?.addEventListener('input', function () {
+      const searchTerm = this.value.toLowerCase();
+      const cards = document.querySelectorAll('#discoverPage .card');
+
+      cards.forEach((card) => {
+        const text = card.textContent.toLowerCase();
+        card.style.display = text.includes(searchTerm) ? '' : 'none';
+      });
+    });
+  </script>
+</body>
+</html>
+
+<button onclick="like(this)">♥ 9</button>
+<button>💬</button>
+<button>↗</button>
+</div>
+
+</section>
+
+
+<section id="discover" class="page">
+
+<h1>Discover</h1>
+<p class="muted">Find new people and friends.</p>
+
+<input placeholder="🔍 Search people">
+
+<div class="card row">
+<div class="avatar">R</div>
+<div style="flex:1">
+<b>Riya</b>
+<div class="muted">12 mutual friends</div>
+</div>
+<button onclick="alert('Friend request sent!')">＋ Add</button>
+</div>
+
+<div class="card row">
+<div class="avatar">D</div>
+<div style="flex:1">
+<b>Dev</b>
+<div class="muted">Photography</div>
+</div>
+<button onclick="alert('Friend request sent!')">＋ Add</button>
+</div>
+
+<div class="card row">
+<div class="avatar">A</div>
+<div style="flex:1">
+<b>Anaya</b>
+<div class="muted">Travel & Food</div>
+</div>
+<button onclick="alert('Friend request sent!')">＋ Add</button>
+</div>
+
+</section>
+
+
+<section id="create" class="page">
+
+<h1>Create a post</h1>
+
+<textarea id="post" rows="7"
+placeholder="Share something with your FRIENZ..."></textarea>
+
+<button style="width:100%" onclick="createPost()">
+Post
+</button>
+
+<p class="muted">📷 Photo &nbsp;&nbsp; 🎥 Video &nbsp;&nbsp; 📊 Poll</p>
+
+</section>
+
+
+<section id="chats" class="page">
+
+<h1>Chats</h1>
+
+<div class="card row" onclick="alert('Chat with Samara')">
+<div class="avatar">S</div>
+<div>
+<b>Samara</b>
+<div class="muted">Hey! Welcome to FRIENZ 👋</div>
+</div>
+</div>
+
+<div class="card row" onclick="alert('Chat with Zuriel')">
+<div class="avatar">Z</div>
+<div>
+<b>Zuriel</b>
+<div class="muted">Let's catch up soon!</div>
+</div>
+</div>
+
+<div class="card row" onclick="alert('Chat with Riya')">
+<div class="avatar">R</div>
+<div>
+<b>Riya</b>
+<div class="muted">Shared a photo</div>
+</div>
+</div>
+
+</section>
+
+
+<section id="profile" class="page">
+
+<div class="card" style="text-align:center">
+
+<div class="avatar" style="margin:auto;width:80px;height:80px">
+F
+</div>
+
+<h1 id="profileName">FRIENZ Member</h1>
+
+<p class="muted">@yourusername</p>
+
+<p>
+<b>3</b> Posts &nbsp;&nbsp;
+<b>24</b> Friends &nbsp;&nbsp;
+<b>31</b> Following
+</p>
+
+</div>
+
+<div class="card">
+<h3>About</h3>
+<p class="muted">
+Welcome to my FRIENZ profile.
+</p>
+</div>
+
+</section>
+
+</main>
+
+
+<div class="nav">
+
+<button class="active" onclick="show('home',this)">
+🏠<br>Home
+</button>
+
+<button onclick="show('discover',this)">
+🔍<br>Discover
+</button>
+
+<button onclick="show('create',this)">
+➕<br>Create
+</button>
+
+<button onclick="show('chats',this)">
+💬<br>Chats
+</button>
+
+<button onclick="show('profile',this)">
+👤<br>Profile
+</button>
+
+</div>
+
+</div>
+
+
+<script>
+
+function login(){
+
+let name=document.getElementById("name").value;
+
+if(!name){
+alert("Please enter your name");
+return;
+}
+
+document.getElementById("auth").classList.add("hidden");
+document.getElementById("app").classList.remove("hidden");
+
+document.getElementById("profileName").innerText=name;
+
+}
+
+function show(page,button){
+
+document.querySelectorAll(".page")
+.forEach(p=>p.classList.remove("active"));
+
+document.getElementById(page)
+.classList.add("active");
+
+document.querySelectorAll(".nav button")
+.forEach(b=>b.classList.remove("active"));
+
+button.classList.add("active");
+
+window.scrollTo(0,0);
+
+}
+
+function like(button){
+
+let number=parseInt(button.innerText.match(/\d+/)[0]);
+
+button.innerText="♥ "+(number+1);
+
+}
+
+function createPost(){
+
+let text=document.getElementById("post").value;
+
+if(!text){
+alert("Write something first!");
+return;
+}
+
+alert("Your post was created! 🎉");
+
+document.getElementById("post").value="";
+
+show("home",document.querySelector(".nav button"));
+
+}
+
+</script>
+
+</body>
