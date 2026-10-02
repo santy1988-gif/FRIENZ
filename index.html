@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FRIENZ</title>
+<style>
+:root{--bg:#071416;--card:#0d2022;--card2:#122a2d;--text:#f4fbfb;--muted:#9db1b3;--a:#53e6a5;--border:#214346}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,sans-serif}.app{max-width:720px;margin:auto;padding-bottom:80px}
+header{position:sticky;top:0;z-index:5;background:#071416f5;border-bottom:1px solid var(--border);padding:16px}.brand{font-size:28px;font-weight:800;letter-spacing:2px}.tag{color:var(--muted);font-size:12px}
+main{padding:14px}.page{display:none}.page.active{display:block}.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:15px;margin-bottom:13px}
+input,textarea{width:100%;padding:12px;border-radius:11px;border:1px solid var(--border);background:#08191b;color:var(--text);font:inherit}textarea{min-height:110px}
+.btn{padding:10px 13px;border-radius:11px;border:1px solid var(--border);background:var(--card2);color:var(--text)}.primary{background:var(--a);color:#062019;font-weight:700}
+.row{display:flex;gap:8px;align-items:center}.row input{flex:1}.muted{color:var(--muted)}.welcome{background:linear-gradient(135deg,#102d2e,#0d2022)}
+.posthead{display:flex;gap:10px;align-items:center}.avatar{width:42px;height:42px;border-radius:50%;background:var(--a);color:#062019;display:grid;place-items:center;font-weight:800}
+.postbody{white-space:pre-wrap;line-height:1.5;margin:14px 0}.actions{display:flex;gap:7px;border-top:1px solid var(--border);padding-top:11px}.comment{background:#08191b;padding:9px;border-radius:10px;margin-top:7px}
+.bottom{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:min(720px,100%);display:grid;grid-template-columns:repeat(5,1fr);background:#071416fa;border-top:1px solid var(--border);z-index:10}
+.nav{border:0;background:none;color:var(--muted);padding:8px 2px;font-size:11px}.nav span{display:block;font-size:20px}.nav.active{color:var(--a)}
+.bubble{background:var(--card2);padding:10px 13px;border-radius:14px;max-width:78%;margin:7px 0}.me{margin-left:auto;background:#18543f}.empty{text-align:center;color:var(--muted);padding:30px}.toast{display:none;position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#eafcf4;color:#062019;padding:10px 15px;border-radius:10px;z-index:20;font-weight:700}
+</style></head><body><div class="app">
+<header><div class="brand">FRIENZ</div><div class="tag">Real People. Real Connections. Real Fun.</div></header>
+<main>
+<section id="home" class="page active"><div class="card welcome"><h2>Welcome to FRIENZ 👋</h2><p class="muted">Share moments, discover people and stay connected.</p><button class="btn primary" onclick="go('create')">Create Post</button></div><div id="feed"></div></section>
+<section id="discover" class="page"><div class="card"><h2>Discover 🔎</h2><input id="search" placeholder="Search posts or people..." oninput="renderDiscover()"></div><div id="discoverFeed"></div></section>
+<section id="create" class="page"><div class="card"><h2>Create Post ✨</h2><input id="name" placeholder="Your name"><br><br><textarea id="text" placeholder="What's happening?"></textarea><br><br><button class="btn primary" onclick="createPost()">Publish</button></div></section>
+<section id="chats" class="page"><div class="card"><h2>Chats 💬</h2><div id="chat" style="min-height:45vh"></div><div class="row"><input id="msg" placeholder="Write a message..." onkeydown="if(event.key==='Enter')send()"><button class="btn primary" onclick="send()">Send</button></div></div></section>
+<section id="profile" class="page"><div class="card" style="text-align:center"><div class="avatar" style="margin:auto;width:70px;height:70px">Y</div><h2 id="pname">You</h2><p class="muted">FRIENZ member</p><button class="btn" onclick="editName()">Edit profile</button></div><div class="card"><h3>Your posts</h3><div id="mine"></div></div></section>
+</main>
+<nav class="bottom">
+<button class="nav active" data-p="home" onclick="go('home')"><span>⌂</span>Home</button>
+<button class="nav" data-p="discover" onclick="go('discover')"><span>⌕</span>Discover</button>
+<button class="nav" data-p="create" onclick="go('create')"><span>＋</span>Create</button>
+<button class="nav" data-p="chats" onclick="go('chats')"><span>♡</span>Chats</button>
+<button class="nav" data-p="profile" onclick="go('profile')"><span>◉</span>Profile</button>
+</nav><div id="toast" class="toast"></div></div>
+<script>
+const PKEY='frienz_posts',MKEY='frienz_messages',NKEY='frienz_name';
+let posts=JSON.parse(localStorage.getItem(PKEY)||'null')||[
+{id:1,name:'Aarav',text:'Welcome to FRIENZ! 🎉',likes:3,liked:false,comments:[]},
+{id:2,name:'Maya',text:'Real people. Real connections. ❤️',likes:5,liked:false,comments:[{name:'Aarav',text:'Absolutely!'}]}];
+let messages=JSON.parse(localStorage.getItem(MKEY)||'null')||[{name:'FRIENZ Bot',text:'Welcome! Send a message to test chat.'}];
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+const me=()=>localStorage.getItem(NKEY)||'You';
+function save(){localStorage.setItem(PKEY,JSON.stringify(posts));localStorage.setItem(MKEY,JSON.stringify(messages))}
+function go(p){document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));document.getElementById(p).classList.add('active');document.querySelectorAll('.nav').forEach(x=>x.classList.toggle('active',x.dataset.p===p));if(p==='home')render();if(p==='discover')renderDiscover();if(p==='chats')renderChat();if(p==='profile')renderProfile();scrollTo(0,0)}
+function card(p){return '<article class="card"><div class="posthead"><div class="avatar">'+esc(p.name[0]||'F')+'</div><b>'+esc(p.name)+'</b></div><div class="postbody">'+esc(p.text)+'</div><div class="actions"><button class="btn" onclick="like('+p.id+')">♥ '+p.likes+'</button><button class="btn" onclick="comment('+p.id+')">💬 '+p.comments.length+'</button>'+(p.name===me()?'<button class="btn" onclick="del('+p.id+')">Delete</button>':'')+'</div>'+p.comments.map(c=>'<div class="comment"><b>'+esc(c.name)+'</b> '+esc(c.text)+'</div>').join('')+'</article>'}
+function render(){feed.innerHTML=posts.map(card).join('')||'<div class="empty">No posts yet.</div>'}
+function renderDiscover(){let q=(search.value||'').toLowerCase();discoverFeed.innerHTML=posts.filter(p=>(p.name+' '+p.text).toLowerCase().includes(q)).map(card).join('')||'<div class="empty">No matches.</div>'}
+function createPost(){let n=(name.value.trim()||'You'),t=text.value.trim();if(!t)return toast('Write something first');localStorage.setItem(NKEY,n);posts.unshift({id:Date.now(),name:n,text:t,likes:0,liked:false,comments:[]});save();text.value='';toast('Post published!');go('home')}
+function like(id){let p=posts.find(x=>x.id===id);p.liked=!p.liked;p.likes+=p.liked?1:-1;save();render();renderDiscover()}
+function comment(id){let t=prompt('Write your comment:');if(!t)return;posts.find(x=>x.id===id).comments.push({name:me(),text:t});save();render();renderDiscover()}
+function del(id){if(confirm('Delete this post?')){posts=posts.filter(p=>p.id!==id);save();render();renderProfile();toast('Post deleted')}}
+function send(){let t=msg.value.trim();if(!t)return;messages.push({name:me(),text:t});save();msg.value='';renderChat()}
+function renderChat(){chat.innerHTML=messages.map(m=>'<div class="bubble '+(m.name===me()?'me':'')+'"><b>'+esc(m.name)+'</b><br>'+esc(m.text)+'</div>').join('')}
+function renderProfile(){pname.textContent=me();mine.innerHTML=posts.filter(p=>p.name===me()).map(card).join('')||'<div class="empty">No posts yet.</div>'}
+function editName(){let n=prompt('Your name:',me());if(n&&n.trim()){localStorage.setItem(NKEY,n.trim());name.value=n.trim();renderProfile();render();toast('Profile updated')}}
+function toast(t){let x=document.getElementById('toast');x.textContent=t;x.style.display='block';setTimeout(()=>x.style.display='none',1700)}
+name.value=me();render();
+</script></body></html>
